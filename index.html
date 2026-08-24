@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>相同数字查找器</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    h1 { font-size: 22px; color: #333; margin-bottom: 8px; }
+    .subtitle { color: #888; font-size: 14px; margin-bottom: 24px; }
+    .table-wrap {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      overflow: hidden;
+      width: 100%;
+      max-width: 520px;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th, td {
+      padding: 12px 16px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+      border-right: 2px solid #ccc;
+      position: relative;
+    }
+    th:last-child, td:last-child { border-right: none; }
+    th {
+      background: #f0f0f0;
+      color: #666;
+      font-weight: 600;
+      font-size: 13px;
+      border-bottom: 2px solid #bbb;
+    }
+    td {
+      font-size: 20px;
+      font-weight: 700;
+      color: #333;
+    }
+    tbody tr:nth-child(odd) { background: #fffde7; }
+    tbody tr:nth-child(even) { background: #e3f2fd; }
+    tbody tr:hover { filter: brightness(0.97); }
+
+    td input {
+      width: 100%;
+      text-align: center;
+      border: none;
+      background: transparent;
+      font-size: 20px;
+      font-weight: 700;
+      color: #333;
+      outline: none;
+      padding: 6px;
+      border-radius: 6px;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum" 1;
+      transition: background 0.15s;
+      position: relative;
+      z-index: 1;
+    }
+    td input:focus { background: rgba(0,0,0,0.04); box-shadow: inset 0 0 0 2px #333; }
+    td input::placeholder { color: transparent; }
+    .col-label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #333;
+      color: #fff;
+      font-size: 12px;
+      margin-left: 6px;
+      font-weight: 700;
+    }
+    .result-cell { color: #2196f3; min-width: 80px; font-size: 22px; }
+    .row-num { color: #bbb; font-size: 12px; font-weight: 400; }
+    .btn-group {
+      margin-top: 16px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .btn {
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      background: #fff;
+      color: #333;
+      font-size: 14px;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .btn:hover { background: #f5f5f5; border-color: #ccc; }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary { background: #333; color: #fff; border-color: #333; }
+    .btn-primary:hover { background: #444; }
+    .btn-success { background: #4caf50; color: #fff; border-color: #4caf50; }
+    .btn-success:hover { background: #43a047; }
+    #importFile { display: none; }
+    .hint {
+      margin-top: 16px;
+      color: #999;
+      font-size: 13px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔢 相同数字查找器</h1>
+  <p class="subtitle">在左侧和中间列输入数字，右侧自动显示两数中相同的数字</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:40px;">#</th>
+          <th>左侧列 <span class="col-label">1</span></th>
+          <th>中间列 <span class="col-label">2</span></th>
+          <th>相同数字 <span class="col-label">3</span></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="btn-group">
+    <button class="btn btn-primary" onclick="addRow()">+ 添加一行</button>
+    <button class="btn btn-success" onclick="exportData()">📤 导出数据</button>
+    <button class="btn" onclick="document.getElementById('importFile').click()">📥 导入数据</button>
+    <input type="file" id="importFile" accept=".json,.txt" onchange="importData(event)">
+  </div>
+
+  <p class="hint">💡 在左侧和中间列输入数字，右侧自动显示两数共有的数字</p>
+
+  <script>
+    const initialData = [
+      ['5790', '2600'],
+      ['1266', ''],
+      ['2489', '4669'],
+      ['6899', ''],
+      ['7778', ''],
+      ['2237', '1246'],
+      ['1249', ''],
+      ['1136', '2478'],
+    ];
+
+    function findCommonDigits(a, b) {
+      if (!a || !b) return '';
+      const setA = new Set(a.replace(/\D/g, '').split(''));
+      const setB = new Set(b.replace(/\D/g, '').split(''));
+      const common = [...setA].filter(d => setB.has(d)).sort();
+      return common.length ? common.join('') : '';
+    }
+
+    function updateResult(row) {
+      const left = row.querySelector('.left-input').value;
+      const mid = row.querySelector('.mid-input').value;
+      const result = row.querySelector('.result-cell');
+      const common = findCommonDigits(left, mid);
+      result.textContent = common;
+    }
+
+    function createRow(idx, leftVal, midVal) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="row-num">${idx + 1}</td>
+        <td><input class="left-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${leftVal}" placeholder="" autocomplete="off"></td>
+        <td><input class="mid-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${midVal}" placeholder="" autocomplete="off"></td>
+        <td class="result-cell"></td>
+      `;
+      tr.querySelector('.left-input').addEventListener('input', () => updateResult(tr));
+      tr.querySelector('.mid-input').addEventListener('input', () => updateResult(tr));
+      return tr;
+    }
+
+    function addRow() {
+      const tbody = document.getElementById('tbody');
+      const row = createRow(tbody.children.length, '', '');
+      tbody.appendChild(row);
+    }
+
+    function getAllData() {
+      const rows = document.querySelectorAll('#tbody tr');
+      const data = [];
+      rows.forEach(row => {
+        const left = row.querySelector('.left-input').value;
+        const mid = row.querySelector('.mid-input').value;
+        data.push([left, mid]);
+      });
+      return data;
+    }
+
+    function exportData() {
+      const data = getAllData();
+      const json = JSON.stringify(data, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = '相同数字数据_' + new Date().toLocaleDateString() + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!Array.isArray(data)) throw new Error('格式错误');
+          const tbody = document.getElementById('tbody');
+          tbody.innerHTML = '';
+          data.forEach((pair, i) => {
+            const row = createRow(i, pair[0] || '', pair[1] || '');
+            tbody.appendChild(row);
+            updateResult(row);
+          });
+        } catch (err) {
+          alert('导入失败：文件格式不正确，请导入有效的 JSON 文件');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    const tbody = document.getElementById('tbody');
+    initialData.forEach((pair, i) => {
+      const row = createRow(i, pair[0], pair[1]);
+      tbody.appendChild(row);
+      updateResult(row);
+    });
+  </script>
+</body>
+</html>
