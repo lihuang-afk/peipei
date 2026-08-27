@@ -24,12 +24,12 @@
       box-shadow: 0 4px 20px rgba(0,0,0,0.06);
       overflow-x: auto;
       width: 100%;
-      max-width: 520px;
+      max-width: 600px;
       -webkit-overflow-scrolling: touch;
     }
-    table { width: 100%; min-width: 360px; border-collapse: collapse; }
+    table { width: 100%; min-width: 420px; border-collapse: collapse; }
     th, td {
-      padding: 12px 10px;
+      padding: 12px 8px;
       text-align: center;
       border-bottom: 1px solid #e2e8f0;
       border-right: 2px solid #cbd5e1;
@@ -55,7 +55,7 @@
 
     td input {
       width: 100%;
-      min-width: 60px;
+      min-width: 50px;
       text-align: center;
       border: none;
       background: transparent;
@@ -86,14 +86,18 @@
       margin-left: 4px;
       font-weight: 700;
     }
-    .result-cell { color: #059669; min-width: 60px; font-size: 22px; }
-    .row-num { color: #94a3b8; font-size: 11px; font-weight: 400; }
+    .result-cell { color: #059669; min-width: 50px; font-size: 22px; }
+    .weekday-cell {
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
 
-    /* 顶部操作按钮：添加一行 + 清空 */
     .top-actions {
       margin-top: 14px;
       width: 100%;
-      max-width: 520px;
+      max-width: 600px;
       display: flex;
       gap: 8px;
     }
@@ -125,11 +129,15 @@
     .btn-info:hover { background: #0284c7; }
     .btn-warning { background: #f59e0b; color: #fff; border-color: #f59e0b; }
     .btn-warning:hover { background: #d97706; }
+    .btn-purple { background: #8b5cf6; color: #fff; border-color: #8b5cf6; }
+    .btn-purple:hover { background: #7c3aed; }
+    .btn-pink { background: #ec4899; color: #fff; border-color: #ec4899; }
+    .btn-pink:hover { background: #db2777; }
 
     .btn-section {
       margin-top: 14px;
       width: 100%;
-      max-width: 520px;
+      max-width: 600px;
     }
     .btn-section-title {
       font-size: 12px;
@@ -144,7 +152,7 @@
       justify-content: center;
     }
 
-    #importFileCol1, #importFileCol2 { display: none; }
+    #importFileCol1, #importFileCol2, #importFileCol4 { display: none; }
     .hint {
       margin-top: 14px;
       color: #94a3b8;
@@ -160,6 +168,7 @@
       th, td { padding: 9px 4px; font-size: 16px; }
       td input { font-size: 16px; padding: 4px 1px; }
       .result-cell { font-size: 18px; }
+      .weekday-cell { font-size: 11px; }
       .btn { padding: 8px 10px; font-size: 12px; }
       .col-label { width: 16px; height: 16px; font-size: 10px; }
     }
@@ -173,17 +182,17 @@
     <table>
       <thead>
         <tr>
-          <th style="width:36px;">#</th>
+          <th style="width:50px;">日期</th>
           <th>左侧列 <span class="col-label">1</span></th>
           <th>中间列 <span class="col-label">2</span></th>
           <th>相同数字 <span class="col-label">3</span></th>
+          <th>右侧列 <span class="col-label">4</span></th>
         </tr>
       </thead>
       <tbody id="tbody"></tbody>
     </table>
   </div>
 
-  <!-- 添加一行 + 清空，放在列操作上方 -->
   <div class="top-actions">
     <button class="btn btn-primary" onclick="addRow()">+ 添加一行</button>
     <button class="btn btn-danger" onclick="clearAllData()">🗑️ 清空</button>
@@ -207,19 +216,34 @@
     </div>
   </div>
 
+  <div class="btn-section">
+    <div class="btn-section-title">📁 右侧列 4</div>
+    <div class="btn-group">
+      <button class="btn btn-purple" onclick="exportCol4()">📤 导出列4</button>
+      <button class="btn btn-pink" onclick="document.getElementById('importFileCol4').click()">📥 导入列4</button>
+      <input type="file" id="importFileCol4" accept=".txt" onchange="importCol4(event)">
+    </div>
+  </div>
+
   <p class="hint">💡 在左侧和中间列输入数字，右侧自动显示两数共有的数字</p>
 
   <script>
+    const weekdays = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日'];
+
     const initialData = [
-      ['5790', '2600'],
-      ['1266', ''],
-      ['2489', '4669'],
-      ['6899', ''],
-      ['7778', ''],
-      ['2237', '1246'],
-      ['1249', ''],
-      ['1136', '2478'],
+      ['5790', '2600', ''],
+      ['1266', '', ''],
+      ['2489', '4669', ''],
+      ['6899', '', ''],
+      ['7778', '', ''],
+      ['2237', '1246', ''],
+      ['1249', '', ''],
+      ['1136', '2478', ''],
     ];
+
+    function getWeekday(idx) {
+      return weekdays[idx % 7];
+    }
 
     function findCommonDigits(a, b) {
       if (!a || !b) return '';
@@ -237,13 +261,14 @@
       result.textContent = common;
     }
 
-    function createRow(idx, leftVal, midVal) {
+    function createRow(idx, leftVal, midVal, rightVal) {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td class="row-num">${idx + 1}</td>
+        <td class="weekday-cell">${getWeekday(idx)}</td>
         <td><input class="left-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${leftVal}" placeholder="" autocomplete="off"></td>
         <td><input class="mid-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${midVal}" placeholder="" autocomplete="off"></td>
         <td class="result-cell"></td>
+        <td><input class="right-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${rightVal}" placeholder="" autocomplete="off"></td>
       `;
       tr.querySelector('.left-input').addEventListener('input', () => updateResult(tr));
       tr.querySelector('.mid-input').addEventListener('input', () => updateResult(tr));
@@ -252,7 +277,7 @@
 
     function addRow() {
       const tbody = document.getElementById('tbody');
-      const row = createRow(tbody.children.length, '', '');
+      const row = createRow(tbody.children.length, '', '', '');
       tbody.appendChild(row);
     }
 
@@ -260,7 +285,7 @@
       if (!confirm('确定要清空所有数据吗？此操作不可恢复。')) return;
       const tbody = document.getElementById('tbody');
       tbody.innerHTML = '';
-      const row = createRow(0, '', '');
+      const row = createRow(0, '', '', '');
       tbody.appendChild(row);
     }
 
@@ -293,7 +318,7 @@
             rows[i].querySelector('.left-input').value = val;
             updateResult(rows[i]);
           } else {
-            const row = createRow(i, val, '');
+            const row = createRow(i, val, '', '');
             tbody.appendChild(row);
           }
         });
@@ -331,7 +356,44 @@
             rows[i].querySelector('.mid-input').value = val;
             updateResult(rows[i]);
           } else {
-            const row = createRow(i, '', val);
+            const row = createRow(i, '', val, '');
+            tbody.appendChild(row);
+          }
+        });
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function exportCol4() {
+      const rows = document.querySelectorAll('#tbody tr');
+      const lines = [];
+      rows.forEach(row => { lines.push(row.querySelector('.right-input').value); });
+      const txt = lines.join('\n');
+      const blob = new Blob([txt], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = '列4数据_' + new Date().toLocaleDateString() + '.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function importCol4(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const lines = e.target.result.split(/\r?\n/).map(l => l.trim());
+        const tbody = document.getElementById('tbody');
+        const rows = tbody.querySelectorAll('tr');
+        lines.forEach((val, i) => {
+          if (i < rows.length) {
+            rows[i].querySelector('.right-input').value = val;
+          } else {
+            const row = createRow(i, '', '', val);
             tbody.appendChild(row);
           }
         });
@@ -342,7 +404,7 @@
 
     const tbody = document.getElementById('tbody');
     initialData.forEach((pair, i) => {
-      const row = createRow(i, pair[0], pair[1]);
+      const row = createRow(i, pair[0], pair[1], pair[2]);
       tbody.appendChild(row);
       updateResult(row);
     });
