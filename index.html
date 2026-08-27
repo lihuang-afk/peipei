@@ -86,7 +86,11 @@
       margin-left: 4px;
       font-weight: 700;
     }
-    .result-cell { color: #059669; min-width: 50px; font-size: 22px; }
+    .result-input {
+      color: #059669;
+      min-width: 50px;
+      font-size: 22px;
+    }
     .weekday-cell {
       color: #64748b;
       font-size: 13px;
@@ -167,7 +171,7 @@
       .subtitle { font-size: 12px; }
       th, td { padding: 9px 4px; font-size: 16px; }
       td input { font-size: 16px; padding: 4px 1px; }
-      .result-cell { font-size: 18px; }
+      .result-input { font-size: 18px; }
       .weekday-cell { font-size: 11px; }
       .btn { padding: 8px 10px; font-size: 12px; }
       .col-label { width: 16px; height: 16px; font-size: 10px; }
@@ -232,14 +236,14 @@
     const weekdays = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日'];
 
     const defaultData = [
-      ['5790', '2600', ''],
-      ['1266', '', ''],
-      ['2489', '4669', ''],
-      ['6899', '', ''],
-      ['7778', '', ''],
-      ['2237', '1246', ''],
-      ['1249', '', ''],
-      ['1136', '2478', ''],
+      ['5790', '2600', '', ''],
+      ['1266', '', '', ''],
+      ['2489', '4669', '', ''],
+      ['6899', '', '', ''],
+      ['7778', '', '', ''],
+      ['2237', '1246', '', ''],
+      ['1249', '', '', ''],
+      ['1136', '2478', '', ''],
     ];
 
     function getWeekday(idx) {
@@ -257,9 +261,9 @@
     function updateResult(row) {
       const left = row.querySelector('.left-input').value;
       const mid = row.querySelector('.mid-input').value;
-      const result = row.querySelector('.result-cell');
+      const resultInput = row.querySelector('.result-input');
       const common = findCommonDigits(left, mid);
-      result.textContent = common;
+      resultInput.value = common;
     }
 
     function saveToStorage() {
@@ -269,6 +273,7 @@
         data.push([
           row.querySelector('.left-input').value,
           row.querySelector('.mid-input').value,
+          row.querySelector('.result-input').value,
           row.querySelector('.right-input').value
         ]);
       });
@@ -283,17 +288,18 @@
       return null;
     }
 
-    function createRow(idx, leftVal, midVal, rightVal) {
+    function createRow(idx, leftVal, midVal, resultVal, rightVal) {
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td class="weekday-cell">${getWeekday(idx)}</td>
         <td><input class="left-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${leftVal}" placeholder="" autocomplete="off"></td>
         <td><input class="mid-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${midVal}" placeholder="" autocomplete="off"></td>
-        <td class="result-cell"></td>
+        <td><input class="result-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${resultVal}" placeholder="" autocomplete="off"></td>
         <td><input class="right-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${rightVal}" placeholder="" autocomplete="off"></td>
       `;
       tr.querySelector('.left-input').addEventListener('input', () => { updateResult(tr); saveToStorage(); });
       tr.querySelector('.mid-input').addEventListener('input', () => { updateResult(tr); saveToStorage(); });
+      tr.querySelector('.result-input').addEventListener('input', () => saveToStorage());
       tr.querySelector('.right-input').addEventListener('input', () => saveToStorage());
       return tr;
     }
@@ -302,7 +308,7 @@
       const tbody = document.getElementById('tbody');
       tbody.innerHTML = '';
       data.forEach((pair, i) => {
-        const row = createRow(i, pair[0] || '', pair[1] || '', pair[2] || '');
+        const row = createRow(i, pair[0] || '', pair[1] || '', pair[2] || '', pair[3] || '');
         tbody.appendChild(row);
         updateResult(row);
       });
@@ -310,7 +316,7 @@
 
     function addRow() {
       const tbody = document.getElementById('tbody');
-      const row = createRow(tbody.children.length, '', '', '');
+      const row = createRow(tbody.children.length, '', '', '', '');
       tbody.appendChild(row);
       saveToStorage();
     }
@@ -320,7 +326,7 @@
       localStorage.removeItem(STORAGE_KEY);
       const tbody = document.getElementById('tbody');
       tbody.innerHTML = '';
-      const row = createRow(0, '', '', '');
+      const row = createRow(0, '', '', '', '');
       tbody.appendChild(row);
       saveToStorage();
     }
@@ -354,7 +360,7 @@
             rows[i].querySelector('.left-input').value = val;
             updateResult(rows[i]);
           } else {
-            const row = createRow(i, val, '', '');
+            const row = createRow(i, val, '', '', '');
             tbody.appendChild(row);
           }
         });
@@ -393,7 +399,7 @@
             rows[i].querySelector('.mid-input').value = val;
             updateResult(rows[i]);
           } else {
-            const row = createRow(i, '', val, '');
+            const row = createRow(i, '', val, '', '');
             tbody.appendChild(row);
           }
         });
@@ -431,7 +437,7 @@
           if (i < rows.length) {
             rows[i].querySelector('.right-input').value = val;
           } else {
-            const row = createRow(i, '', '', val);
+            const row = createRow(i, '', '', '', val);
             tbody.appendChild(row);
           }
         });
@@ -441,7 +447,6 @@
       event.target.value = '';
     }
 
-    // 初始化：优先从 localStorage 加载，否则用默认数据
     const savedData = loadFromStorage();
     if (savedData && savedData.length > 0) {
       renderData(savedData);
