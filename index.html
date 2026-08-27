@@ -225,12 +225,13 @@
     </div>
   </div>
 
-  <p class="hint">💡 在左侧和中间列输入数字，右侧自动显示两数共有的数字</p>
+  <p class="hint">💡 数据已自动保存到浏览器，关闭后重新打开不会丢失</p>
 
   <script>
+    const STORAGE_KEY = 'number_tool_data';
     const weekdays = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日'];
 
-    const initialData = [
+    const defaultData = [
       ['5790', '2600', ''],
       ['1266', '', ''],
       ['2489', '4669', ''],
@@ -261,6 +262,27 @@
       result.textContent = common;
     }
 
+    function saveToStorage() {
+      const rows = document.querySelectorAll('#tbody tr');
+      const data = [];
+      rows.forEach(row => {
+        data.push([
+          row.querySelector('.left-input').value,
+          row.querySelector('.mid-input').value,
+          row.querySelector('.right-input').value
+        ]);
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function loadFromStorage() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) return JSON.parse(saved);
+      } catch (e) {}
+      return null;
+    }
+
     function createRow(idx, leftVal, midVal, rightVal) {
       const tr = document.createElement('tr');
       tr.innerHTML = `
@@ -270,23 +292,37 @@
         <td class="result-cell"></td>
         <td><input class="right-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${rightVal}" placeholder="" autocomplete="off"></td>
       `;
-      tr.querySelector('.left-input').addEventListener('input', () => updateResult(tr));
-      tr.querySelector('.mid-input').addEventListener('input', () => updateResult(tr));
+      tr.querySelector('.left-input').addEventListener('input', () => { updateResult(tr); saveToStorage(); });
+      tr.querySelector('.mid-input').addEventListener('input', () => { updateResult(tr); saveToStorage(); });
+      tr.querySelector('.right-input').addEventListener('input', () => saveToStorage());
       return tr;
+    }
+
+    function renderData(data) {
+      const tbody = document.getElementById('tbody');
+      tbody.innerHTML = '';
+      data.forEach((pair, i) => {
+        const row = createRow(i, pair[0] || '', pair[1] || '', pair[2] || '');
+        tbody.appendChild(row);
+        updateResult(row);
+      });
     }
 
     function addRow() {
       const tbody = document.getElementById('tbody');
       const row = createRow(tbody.children.length, '', '', '');
       tbody.appendChild(row);
+      saveToStorage();
     }
 
     function clearAllData() {
       if (!confirm('确定要清空所有数据吗？此操作不可恢复。')) return;
+      localStorage.removeItem(STORAGE_KEY);
       const tbody = document.getElementById('tbody');
       tbody.innerHTML = '';
       const row = createRow(0, '', '', '');
       tbody.appendChild(row);
+      saveToStorage();
     }
 
     function exportCol1() {
@@ -322,6 +358,7 @@
             tbody.appendChild(row);
           }
         });
+        saveToStorage();
       };
       reader.readAsText(file);
       event.target.value = '';
@@ -360,6 +397,7 @@
             tbody.appendChild(row);
           }
         });
+        saveToStorage();
       };
       reader.readAsText(file);
       event.target.value = '';
@@ -397,17 +435,19 @@
             tbody.appendChild(row);
           }
         });
+        saveToStorage();
       };
       reader.readAsText(file);
       event.target.value = '';
     }
 
-    const tbody = document.getElementById('tbody');
-    initialData.forEach((pair, i) => {
-      const row = createRow(i, pair[0], pair[1], pair[2]);
-      tbody.appendChild(row);
-      updateResult(row);
-    });
+    // 初始化：优先从 localStorage 加载，否则用默认数据
+    const savedData = loadFromStorage();
+    if (savedData && savedData.length > 0) {
+      renderData(savedData);
+    } else {
+      renderData(defaultData);
+    }
   </script>
 </body>
 </html>
