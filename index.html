@@ -53,7 +53,7 @@
     tbody tr:nth-child(even) { background: #eff6ff; }
     tbody tr:hover { filter: brightness(0.96); }
 
-    td input {
+    td input, th input {
       width: 100%;
       min-width: 50px;
       text-align: center;
@@ -71,8 +71,14 @@
       position: relative;
       z-index: 1;
     }
-    td input:focus { background: rgba(0,0,0,0.04); box-shadow: inset 0 0 0 2px #475569; }
-    td input::placeholder { color: transparent; }
+    th input {
+      font-size: 12px;
+      font-weight: 600;
+      color: #475569;
+      padding: 4px 2px;
+    }
+    td input:focus, th input:focus { background: rgba(0,0,0,0.04); box-shadow: inset 0 0 0 2px #475569; }
+    td input::placeholder, th input::placeholder { color: transparent; }
     .col-label {
       display: inline-flex;
       align-items: center;
@@ -85,11 +91,6 @@
       font-size: 11px;
       margin-left: 4px;
       font-weight: 700;
-    }
-    .result-input {
-      color: #059669;
-      min-width: 50px;
-      font-size: 22px;
     }
     .weekday-cell {
       color: #64748b;
@@ -107,8 +108,8 @@
     }
     .btn {
       flex: 1 1 auto;
-      min-width: 80px;
-      padding: 10px 14px;
+      min-width: 60px;
+      padding: 10px 10px;
       border-radius: 10px;
       border: 1px solid #e2e8f0;
       background: #fff;
@@ -137,6 +138,12 @@
     .btn-purple:hover { background: #7c3aed; }
     .btn-pink { background: #ec4899; color: #fff; border-color: #ec4899; }
     .btn-pink:hover { background: #db2777; }
+    .btn-teal { background: #14b8a6; color: #fff; border-color: #14b8a6; }
+    .btn-teal:hover { background: #0d9488; }
+    .btn-rose { background: #f43f5e; color: #fff; border-color: #f43f5e; }
+    .btn-rose:hover { background: #e11d48; }
+    .btn-gray { background: #6b7280; color: #fff; border-color: #6b7280; }
+    .btn-gray:hover { background: #4b5563; }
 
     .btn-section {
       margin-top: 14px;
@@ -156,7 +163,7 @@
       justify-content: center;
     }
 
-    #importFileCol1, #importFileCol2, #importFileCol4 { display: none; }
+    #importFileCol1, #importFileCol2, #importFileCol3, #importFileCol4 { display: none; }
     .hint {
       margin-top: 14px;
       color: #94a3b8;
@@ -171,9 +178,9 @@
       .subtitle { font-size: 12px; }
       th, td { padding: 9px 4px; font-size: 16px; }
       td input { font-size: 16px; padding: 4px 1px; }
-      .result-input { font-size: 18px; }
+      th input { font-size: 11px; }
       .weekday-cell { font-size: 11px; }
-      .btn { padding: 8px 10px; font-size: 12px; }
+      .btn { padding: 8px 6px; font-size: 11px; }
       .col-label { width: 16px; height: 16px; font-size: 10px; }
     }
   </style>
@@ -189,8 +196,14 @@
           <th style="width:50px;">日期</th>
           <th>左侧列 <span class="col-label">1</span></th>
           <th>中间列 <span class="col-label">2</span></th>
-          <th>相同数字 <span class="col-label">3</span></th>
-          <th>右侧列 <span class="col-label">4</span></th>
+          <th>
+            <input id="col3Name" type="text" value="列三" placeholder="列三" autocomplete="off" style="width:70px;">
+            <span class="col-label">3</span>
+          </th>
+          <th>
+            <input id="col4Name" type="text" value="右侧列" placeholder="右侧列" autocomplete="off" style="width:70px;">
+            <span class="col-label">4</span>
+          </th>
         </tr>
       </thead>
       <tbody id="tbody"></tbody>
@@ -199,32 +212,45 @@
 
   <div class="top-actions">
     <button class="btn btn-primary" onclick="addRow()">+ 添加一行</button>
-    <button class="btn btn-danger" onclick="clearAllData()">🗑️ 清空</button>
+    <button class="btn btn-danger" onclick="clearAllData()">🗑️ 清空全部</button>
   </div>
 
   <div class="btn-section">
-    <div class="btn-section-title">📁 左侧列 1</div>
+    <div class="btn-section-title">📁 列 1</div>
     <div class="btn-group">
       <button class="btn btn-success" onclick="exportCol1()">📤 导出列1</button>
       <button class="btn" onclick="document.getElementById('importFileCol1').click()">📥 导入列1</button>
+      <button class="btn btn-gray" onclick="clearCol1()">🗑️ 清空列1</button>
       <input type="file" id="importFileCol1" accept=".txt" onchange="importCol1(event)">
     </div>
   </div>
 
   <div class="btn-section">
-    <div class="btn-section-title">📁 中间列 2</div>
+    <div class="btn-section-title">📁 列 2</div>
     <div class="btn-group">
       <button class="btn btn-info" onclick="exportCol2()">📤 导出列2</button>
       <button class="btn btn-warning" onclick="document.getElementById('importFileCol2').click()">📥 导入列2</button>
+      <button class="btn btn-gray" onclick="clearCol2()">🗑️ 清空列2</button>
       <input type="file" id="importFileCol2" accept=".txt" onchange="importCol2(event)">
     </div>
   </div>
 
   <div class="btn-section">
-    <div class="btn-section-title">📁 右侧列 4</div>
+    <div class="btn-section-title">📁 列 3</div>
+    <div class="btn-group">
+      <button class="btn btn-teal" onclick="exportCol3()">📤 导出列3</button>
+      <button class="btn btn-rose" onclick="document.getElementById('importFileCol3').click()">📥 导入列3</button>
+      <button class="btn btn-gray" onclick="clearCol3()">🗑️ 清空列3</button>
+      <input type="file" id="importFileCol3" accept=".txt" onchange="importCol3(event)">
+    </div>
+  </div>
+
+  <div class="btn-section">
+    <div class="btn-section-title">📁 列 4</div>
     <div class="btn-group">
       <button class="btn btn-purple" onclick="exportCol4()">📤 导出列4</button>
       <button class="btn btn-pink" onclick="document.getElementById('importFileCol4').click()">📥 导入列4</button>
+      <button class="btn btn-gray" onclick="clearCol4()">🗑️ 清空列4</button>
       <input type="file" id="importFileCol4" accept=".txt" onchange="importCol4(event)">
     </div>
   </div>
@@ -233,6 +259,7 @@
 
   <script>
     const STORAGE_KEY = 'number_tool_data';
+    const NAME_KEY = 'number_tool_names';
     const weekdays = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日'];
 
     const defaultData = [
@@ -250,22 +277,6 @@
       return weekdays[idx % 7];
     }
 
-    function findCommonDigits(a, b) {
-      if (!a || !b) return '';
-      const setA = new Set(a.replace(/\D/g, '').split(''));
-      const setB = new Set(b.replace(/\D/g, '').split(''));
-      const common = [...setA].filter(d => setB.has(d)).sort();
-      return common.length ? common.join('') : '';
-    }
-
-    function updateResult(row) {
-      const left = row.querySelector('.left-input').value;
-      const mid = row.querySelector('.mid-input').value;
-      const resultInput = row.querySelector('.result-input');
-      const common = findCommonDigits(left, mid);
-      resultInput.value = common;
-    }
-
     function saveToStorage() {
       const rows = document.querySelectorAll('#tbody tr');
       const data = [];
@@ -273,11 +284,16 @@
         data.push([
           row.querySelector('.left-input').value,
           row.querySelector('.mid-input').value,
-          row.querySelector('.result-input').value,
-          row.querySelector('.right-input').value
+          row.querySelector('.col3-input').value,
+          row.querySelector('.col4-input').value
         ]);
       });
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      const names = {
+        col3: document.getElementById('col3Name').value,
+        col4: document.getElementById('col4Name').value
+      };
+      localStorage.setItem(NAME_KEY, JSON.stringify(names));
     }
 
     function loadFromStorage() {
@@ -288,19 +304,30 @@
       return null;
     }
 
-    function createRow(idx, leftVal, midVal, resultVal, rightVal) {
+    function loadNamesFromStorage() {
+      try {
+        const saved = localStorage.getItem(NAME_KEY);
+        if (saved) {
+          const names = JSON.parse(saved);
+          if (names.col3) document.getElementById('col3Name').value = names.col3;
+          if (names.col4) document.getElementById('col4Name').value = names.col4;
+        }
+      } catch (e) {}
+    }
+
+    function createRow(idx, leftVal, midVal, col3Val, col4Val) {
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td class="weekday-cell">${getWeekday(idx)}</td>
         <td><input class="left-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${leftVal}" placeholder="" autocomplete="off"></td>
         <td><input class="mid-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${midVal}" placeholder="" autocomplete="off"></td>
-        <td><input class="result-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${resultVal}" placeholder="" autocomplete="off"></td>
-        <td><input class="right-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${rightVal}" placeholder="" autocomplete="off"></td>
+        <td><input class="col3-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${col3Val}" placeholder="" autocomplete="off"></td>
+        <td><input class="col4-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${col4Val}" placeholder="" autocomplete="off"></td>
       `;
-      tr.querySelector('.left-input').addEventListener('input', () => { updateResult(tr); saveToStorage(); });
-      tr.querySelector('.mid-input').addEventListener('input', () => { updateResult(tr); saveToStorage(); });
-      tr.querySelector('.result-input').addEventListener('input', () => saveToStorage());
-      tr.querySelector('.right-input').addEventListener('input', () => saveToStorage());
+      tr.querySelector('.left-input').addEventListener('input', () => saveToStorage());
+      tr.querySelector('.mid-input').addEventListener('input', () => saveToStorage());
+      tr.querySelector('.col3-input').addEventListener('input', () => saveToStorage());
+      tr.querySelector('.col4-input').addEventListener('input', () => saveToStorage());
       return tr;
     }
 
@@ -310,7 +337,6 @@
       data.forEach((pair, i) => {
         const row = createRow(i, pair[0] || '', pair[1] || '', pair[2] || '', pair[3] || '');
         tbody.appendChild(row);
-        updateResult(row);
       });
     }
 
@@ -328,6 +354,34 @@
       tbody.innerHTML = '';
       const row = createRow(0, '', '', '', '');
       tbody.appendChild(row);
+      saveToStorage();
+    }
+
+    function clearCol1() {
+      if (!confirm('确定要清空列1的所有数据吗？')) return;
+      const rows = document.querySelectorAll('#tbody tr');
+      rows.forEach(row => { row.querySelector('.left-input').value = ''; });
+      saveToStorage();
+    }
+
+    function clearCol2() {
+      if (!confirm('确定要清空列2的所有数据吗？')) return;
+      const rows = document.querySelectorAll('#tbody tr');
+      rows.forEach(row => { row.querySelector('.mid-input').value = ''; });
+      saveToStorage();
+    }
+
+    function clearCol3() {
+      if (!confirm('确定要清空列3的所有数据吗？')) return;
+      const rows = document.querySelectorAll('#tbody tr');
+      rows.forEach(row => { row.querySelector('.col3-input').value = ''; });
+      saveToStorage();
+    }
+
+    function clearCol4() {
+      if (!confirm('确定要清空列4的所有数据吗？')) return;
+      const rows = document.querySelectorAll('#tbody tr');
+      rows.forEach(row => { row.querySelector('.col4-input').value = ''; });
       saveToStorage();
     }
 
@@ -358,7 +412,6 @@
         lines.forEach((val, i) => {
           if (i < rows.length) {
             rows[i].querySelector('.left-input').value = val;
-            updateResult(rows[i]);
           } else {
             const row = createRow(i, val, '', '', '');
             tbody.appendChild(row);
@@ -397,9 +450,46 @@
         lines.forEach((val, i) => {
           if (i < rows.length) {
             rows[i].querySelector('.mid-input').value = val;
-            updateResult(rows[i]);
           } else {
             const row = createRow(i, '', val, '', '');
+            tbody.appendChild(row);
+          }
+        });
+        saveToStorage();
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function exportCol3() {
+      const rows = document.querySelectorAll('#tbody tr');
+      const lines = [];
+      rows.forEach(row => { lines.push(row.querySelector('.col3-input').value); });
+      const txt = lines.join('\n');
+      const blob = new Blob([txt], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = '列3数据_' + new Date().toLocaleDateString() + '.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function importCol3(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const lines = e.target.result.split(/\r?\n/).map(l => l.trim());
+        const tbody = document.getElementById('tbody');
+        const rows = tbody.querySelectorAll('tr');
+        lines.forEach((val, i) => {
+          if (i < rows.length) {
+            rows[i].querySelector('.col3-input').value = val;
+          } else {
+            const row = createRow(i, '', '', val, '');
             tbody.appendChild(row);
           }
         });
@@ -412,7 +502,7 @@
     function exportCol4() {
       const rows = document.querySelectorAll('#tbody tr');
       const lines = [];
-      rows.forEach(row => { lines.push(row.querySelector('.right-input').value); });
+      rows.forEach(row => { lines.push(row.querySelector('.col4-input').value); });
       const txt = lines.join('\n');
       const blob = new Blob([txt], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
@@ -435,7 +525,7 @@
         const rows = tbody.querySelectorAll('tr');
         lines.forEach((val, i) => {
           if (i < rows.length) {
-            rows[i].querySelector('.right-input').value = val;
+            rows[i].querySelector('.col4-input').value = val;
           } else {
             const row = createRow(i, '', '', '', val);
             tbody.appendChild(row);
@@ -447,12 +537,29 @@
       event.target.value = '';
     }
 
+    document.getElementById('col3Name').addEventListener('input', function() {
+      saveToStorage();
+    });
+    document.getElementById('col4Name').addEventListener('input', function() {
+      saveToStorage();
+    });
+
+    loadNamesFromStorage();
     const savedData = loadFromStorage();
     if (savedData && savedData.length > 0) {
       renderData(savedData);
     } else {
       renderData(defaultData);
     }
+
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        const addBtn = document.querySelector('.btn-primary');
+        if (addBtn) {
+          addBtn.scrollIntoView({ behavior: 'auto', block: 'center' });
+        }
+      }, 100);
+    });
   </script>
 </body>
 </html>
