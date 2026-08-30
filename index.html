@@ -342,6 +342,15 @@
 
     function addRow() {
       const tbody = document.getElementById('tbody');
+      // 最多显示100行，超出时删除第一行
+      if (tbody.children.length >= 100) {
+        tbody.removeChild(tbody.firstElementChild);
+        // 重新编号日期列
+        const rows = tbody.querySelectorAll('tr');
+        rows.forEach((row, idx) => {
+          row.querySelector('.weekday-cell').textContent = getWeekday(idx);
+        });
+      }
       const row = createRow(tbody.children.length, '', '', '', '');
       tbody.appendChild(row);
       saveToStorage();
