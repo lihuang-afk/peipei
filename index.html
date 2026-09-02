@@ -183,7 +183,31 @@
       .btn { padding: 8px 6px; font-size: 11px; }
       .col-label { width: 16px; height: 16px; font-size: 10px; }
     }
-  </style>
+  
+    .dot-btn {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-left: 5px;
+      cursor: pointer;
+      vertical-align: middle;
+      transition: transform 0.15s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .dot-btn:hover {
+      transform: scale(1.3);
+    }
+    .dot-btn:active {
+      transform: scale(0.9);
+    }
+    .dot-btn[data-color="yellow"] {
+      background: #f1c40f;
+    }
+    .dot-btn[data-color="blue"] {
+      background: #27ae60;
+    }
+</style>
 </head>
 <body>
   <h1>🔢 相同数字查找器</h1>
@@ -318,7 +342,11 @@
     function createRow(idx, leftVal, midVal, col3Val, col4Val) {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td class="weekday-cell">${getWeekday(idx)}</td>
+        <td class="weekday-cell">
+          ${getWeekday(idx)}
+          <span class="dot-btn" data-color="yellow"></span>
+          <span class="dot-btn" data-color="blue"></span>
+        </td>
         <td><input class="left-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${leftVal}" placeholder="" autocomplete="off"></td>
         <td><input class="mid-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${midVal}" placeholder="" autocomplete="off"></td>
         <td><input class="col3-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${col3Val}" placeholder="" autocomplete="off"></td>
@@ -328,6 +356,14 @@
       tr.querySelector('.mid-input').addEventListener('input', () => saveToStorage());
       tr.querySelector('.col3-input').addEventListener('input', () => saveToStorage());
       tr.querySelector('.col4-input').addEventListener('input', () => saveToStorage());
+      // 添加圆点按钮点击事件
+      tr.querySelectorAll('.dot-btn').forEach(dot => {
+        dot.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const color = this.getAttribute('data-color') === 'yellow' ? '#f1c40f' : '#27ae60';
+          tr.style.backgroundColor = color;
+        });
+      });
       return tr;
     }
 
@@ -342,15 +378,7 @@
 
     function addRow() {
       const tbody = document.getElementById('tbody');
-      // 最多显示100行，超出时删除第一行
-      if (tbody.children.length >= 100) {
-        tbody.removeChild(tbody.firstElementChild);
-        // 重新编号日期列
-        const rows = tbody.querySelectorAll('tr');
-        rows.forEach((row, idx) => {
-          row.querySelector('.weekday-cell').textContent = getWeekday(idx);
-        });
-      }
+
       const row = createRow(tbody.children.length, '', '', '', '');
       tbody.appendChild(row);
       saveToStorage();
