@@ -356,12 +356,20 @@
       tr.querySelector('.mid-input').addEventListener('input', () => saveToStorage());
       tr.querySelector('.col3-input').addEventListener('input', () => saveToStorage());
       tr.querySelector('.col4-input').addEventListener('input', () => saveToStorage());
-      // 添加圆点按钮点击事件
+      // 添加圆点按钮点击事件（切换颜色）
       tr.querySelectorAll('.dot-btn').forEach(dot => {
         dot.addEventListener('click', function(e) {
           e.stopPropagation();
           const color = this.getAttribute('data-color') === 'yellow' ? '#f1c40f' : '#27ae60';
-          tr.style.backgroundColor = color;
+          const currentBg = tr.style.backgroundColor;
+          // 如果当前已经是该颜色，则恢复原始交替色
+          if (currentBg === color || tr.dataset.activeColor === this.getAttribute('data-color')) {
+            tr.style.backgroundColor = '';
+            tr.dataset.activeColor = '';
+          } else {
+            tr.style.backgroundColor = color;
+            tr.dataset.activeColor = this.getAttribute('data-color');
+          }
         });
       });
       return tr;
