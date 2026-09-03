@@ -97,33 +97,6 @@
       font-size: 13px;
       font-weight: 600;
       white-space: nowrap;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .weekday-text {
-      margin-right: 2px;
-    }
-    .dot-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s;
-      border: 1px solid rgba(0,0,0,0.1);
-    }
-    .dot-btn:hover {
-      transform: scale(1.2);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    }
-    .dot-yellow {
-      background: #f1c40f;
-    }
-    .dot-blue {
-      background: #27ae60;
     }
 
     .top-actions {
@@ -210,7 +183,31 @@
       .btn { padding: 8px 6px; font-size: 11px; }
       .col-label { width: 16px; height: 16px; font-size: 10px; }
     }
-  </style>
+  
+    .dot-btn {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-left: 5px;
+      cursor: pointer;
+      vertical-align: middle;
+      transition: transform 0.15s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .dot-btn:hover {
+      transform: scale(1.3);
+    }
+    .dot-btn:active {
+      transform: scale(0.9);
+    }
+    .dot-btn[data-color="yellow"] {
+      background: #f1c40f;
+    }
+    .dot-btn[data-color="blue"] {
+      background: #27ae60;
+    }
+</style>
 </head>
 <body>
   <h1>🔢 相同数字查找器</h1>
@@ -345,7 +342,11 @@
     function createRow(idx, leftVal, midVal, col3Val, col4Val) {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td class="weekday-cell"><span class="weekday-text">${getWeekday(idx)}</span><span class="dot-btn dot-yellow" title="标记黄色"></span><span class="dot-btn dot-blue" title="标记蓝色"></span></td>
+        <td class="weekday-cell">
+          ${getWeekday(idx)}
+          <span class="dot-btn" data-color="yellow"></span>
+          <span class="dot-btn" data-color="blue"></span>
+        </td>
         <td><input class="left-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${leftVal}" placeholder="" autocomplete="off"></td>
         <td><input class="mid-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${midVal}" placeholder="" autocomplete="off"></td>
         <td><input class="col3-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${col3Val}" placeholder="" autocomplete="off"></td>
@@ -355,34 +356,15 @@
       tr.querySelector('.mid-input').addEventListener('input', () => saveToStorage());
       tr.querySelector('.col3-input').addEventListener('input', () => saveToStorage());
       tr.querySelector('.col4-input').addEventListener('input', () => saveToStorage());
-      // 黄色圆点 - 点击将整行背景设为黄色，再点击恢复原色
-      const yellowDot = tr.querySelector('.dot-yellow');
-      yellowDot.addEventListener('click', function(e) {
-        e.stopPropagation();
-        if (tr.dataset.rowColor === 'yellow') {
-          // 再次点击黄色 → 恢复原始背景色
-          tr.style.backgroundColor = '';
-          tr.dataset.rowColor = '';
-        } else {
-          // 点击黄色 → 设为黄色（同时取消蓝色）
-          tr.style.backgroundColor = '#f1c40f';
-          tr.dataset.rowColor = 'yellow';
-        }
+      // 添加圆点按钮点击事件
+      tr.querySelectorAll('.dot-btn').forEach(dot => {
+        dot.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const color = this.getAttribute('data-color') === 'yellow' ? '#f1c40f' : '#27ae60';
+          tr.style.backgroundColor = color;
+        });
       });
-      // 蓝色圆点 - 点击将整行背景设为蓝色，再点击恢复原色
-      const blueDot = tr.querySelector('.dot-blue');
-      blueDot.addEventListener('click', function(e) {
-        e.stopPropagation();
-        if (tr.dataset.rowColor === 'blue') {
-          // 再次点击蓝色 → 恢复原始背景色
-          tr.style.backgroundColor = '';
-          tr.dataset.rowColor = '';
-        } else {
-          // 点击蓝色 → 设为蓝色（同时取消黄色）
-          tr.style.backgroundColor = '#27ae60';
-          tr.dataset.rowColor = 'blue';
-        }
-      });
+      return tr;
     }
 
     function renderData(data) {
@@ -396,15 +378,7 @@
 
     function addRow() {
       const tbody = document.getElementById('tbody');
-      // 最多显示100行，超出时删除第一行
-      if (tbody.children.length >= 100) {
-        tbody.removeChild(tbody.firstElementChild);
-        // 重新编号日期列
-        const rows = tbody.querySelectorAll('tr');
-        rows.forEach((row, idx) => {
-          row.querySelector('.weekday-cell').textContent = getWeekday(idx);
-        });
-      }
+
       const row = createRow(tbody.children.length, '', '', '', '');
       tbody.appendChild(row);
       saveToStorage();
